@@ -6,7 +6,7 @@ import os
 
 # ================= CONFIG =================
 ARCHIVO_EXCEL = "pases_croupier.xlsx"
-CODIGOS_ADMIN = ["JMESA01", "ADMINVIP"]
+CODIGOS_ADMIN = ["jmesa01", "adminvip"]
 
 jefes_mesa = [
     "Aguado Jaime Omar", "Alvarez Vivian Leslie", "Araya Alex Fernando",
@@ -224,3 +224,4 @@ if codigo:
             st.info("Aún no existe archivo.")
     else:
         st.error("Código incorrecto")
+
