@@ -67,10 +67,14 @@ if "confirmar_nueva" not in st.session_state:
 if "ultimo_registro" not in st.session_state:
     st.session_state.ultimo_registro = None
 
+if "confirmar_reset" not in st.session_state:
+    st.session_state.confirmar_reset = False
+
 # ================= UI =================
 st.set_page_config(page_title="Medición de Pases", layout="centered")
 st.title("⏱ Medición de Pases por Croupier")
 
+# -------- Selectores --------
 jefe_mesa = st.selectbox("Jefe de mesa (quien mide)", jefes_mesa)
 croupier = st.selectbox("Croupier", croupiers)
 juego = st.selectbox("Juego", juegos)
@@ -78,7 +82,7 @@ jugadores = st.slider("Cantidad de jugadores", 1, 6, 6)
 
 st.divider()
 
-# Placeholder para cronómetro
+# Placeholder del cronómetro
 cronometro_placeholder = st.empty()
 
 # ================= CRONÓMETRO =================
@@ -117,7 +121,7 @@ elif st.session_state.inicio is not None:
     time.sleep(1)
     st.rerun()
 
-# ================= CONFIRMACIÓN =================
+# ================= CONFIRMACIÓN NUEVA MEDICIÓN =================
 if st.session_state.confirmar_nueva:
     st.success(
         f"✅ Tiempo registrado: {st.session_state.ultimo_registro['Tiempo_formato']}"
@@ -176,14 +180,47 @@ if codigo:
         st.success("Acceso autorizado")
 
         if os.path.exists(ARCHIVO_EXCEL):
-            with open(ARCHIVO_EXCEL, "rb") as f:
-                st.download_button(
-                    "📥 Descargar Excel completo",
-                    f,
-                    file_name="pases_croupier.xlsx",
-                    mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                )
+            col1, col2 = st.columns(2)
+
+            # ---- Descargar ----
+            with col1:
+                with open(ARCHIVO_EXCEL, "rb") as f:
+                    st.download_button(
+                        "📥 Descargar Excel",
+                        f,
+                        file_name="pases_croupier.xlsx",
+                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+                    )
+
+            # ---- Reset ----
+            with col2:
+                if not st.session_state.confirmar_reset:
+                    if st.button("🧨 Resetear registros"):
+                        st.session_state.confirmar_reset = True
+                        st.rerun()
+                else:
+                    st.warning("⚠️ ¿Seguro que desea borrar TODOS los registros?")
+
+                    c1, c2 = st.columns(2)
+                    with c1:
+                        if st.button("✅ Sí, borrar todo"):
+                            columnas = [
+                                "FechaHora", "JefeMesa", "Croupier",
+                                "Juego", "Jugadores",
+                                "Tiempo_segundos", "Tiempo_formato"
+                            ]
+                            df_vacio = pd.DataFrame(columns=columnas)
+                            df_vacio.to_excel(ARCHIVO_EXCEL, index=False)
+
+                            st.session_state.confirmar_reset = False
+                            st.success("🧹 Registros eliminados. Archivo reiniciado.")
+                            st.rerun()
+
+                    with c2:
+                        if st.button("❌ Cancelar"):
+                            st.session_state.confirmar_reset = False
+                            st.rerun()
         else:
-            st.info("Aún no hay archivo.")
+            st.info("Aún no existe archivo.")
     else:
         st.error("Código incorrecto")
