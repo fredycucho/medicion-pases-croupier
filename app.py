@@ -71,7 +71,7 @@ juegos = [
 ]
 
 # ---------------- FUNCIONES ----------------
-def guardar_rGuerraegistro(data):
+def guardar_registro(data):
     df_nuevo = pd.DataFrame([data])
 
     if os.path.exists(ARCHIVO_EXCEL):
@@ -128,4 +128,5 @@ else:
 
         st.success(f"Tiempo registrado: {registro['Tiempo_formato']}")
         st.session_state.inicio = None
+
 
