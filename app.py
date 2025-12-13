@@ -19,8 +19,6 @@ jefes_mesa = [
     "Recabal Willfredo Alexis",
     "Soto Felix Eduardo",
     "Villegas Rodrigo"
-
-
 ]
 
 croupiers = [
@@ -130,3 +128,4 @@ else:
 
         st.success(f"Tiempo registrado: {registro['Tiempo_formato']}")
         st.session_state.inicio = None
+
