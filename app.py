@@ -6,7 +6,6 @@ import os
 
 # ================= CONFIG =================
 ARCHIVO_EXCEL = "pases_croupier.xlsx"
-
 CODIGOS_ADMIN = ["JMESA01", "ADMINVIP"]
 
 jefes_mesa = [
@@ -72,13 +71,15 @@ if "ultimo_registro" not in st.session_state:
 st.set_page_config(page_title="Medición de Pases", layout="centered")
 st.title("⏱ Medición de Pases por Croupier")
 
-# --------- Selectores ---------
 jefe_mesa = st.selectbox("Jefe de mesa (quien mide)", jefes_mesa)
 croupier = st.selectbox("Croupier", croupiers)
 juego = st.selectbox("Juego", juegos)
 jugadores = st.slider("Cantidad de jugadores", 1, 6, 6)
 
 st.divider()
+
+# Placeholder para cronómetro
+cronometro_placeholder = st.empty()
 
 # ================= CRONÓMETRO =================
 if st.session_state.inicio is None and not st.session_state.confirmar_nueva:
@@ -88,7 +89,9 @@ if st.session_state.inicio is None and not st.session_state.confirmar_nueva:
 
 elif st.session_state.inicio is not None:
     tiempo_actual = time.time() - st.session_state.inicio
-    st.info(f"⏱ Tiempo en curso: {formato_tiempo(tiempo_actual)}")
+    cronometro_placeholder.info(
+        f"⏱ Tiempo en curso: {formato_tiempo(tiempo_actual)}"
+    )
 
     if st.button("⏹ FINALIZAR", use_container_width=True):
         tiempo_final = time.time() - st.session_state.inicio
@@ -109,6 +112,10 @@ elif st.session_state.inicio is not None:
         st.session_state.inicio = None
         st.session_state.confirmar_nueva = True
         st.rerun()
+
+    # 🔁 refresco automático del cronómetro
+    time.sleep(1)
+    st.rerun()
 
 # ================= CONFIRMACIÓN =================
 if st.session_state.confirmar_nueva:
