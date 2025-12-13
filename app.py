@@ -72,7 +72,7 @@ if "confirmar_reset" not in st.session_state:
 
 # ================= UI =================
 st.set_page_config(page_title="Medición de Pases", layout="centered")
-st.title("⏱ Medición de Pases por Croupier")
+st.title("⏱ Medición de Pases hora por Croupier")
 
 # -------- Selectores --------
 jefe_mesa = st.selectbox("Jefe de mesa (quien mide)", jefes_mesa)
@@ -224,4 +224,5 @@ if codigo:
             st.info("Aún no existe archivo.")
     else:
         st.error("Código incorrecto")
+
 
