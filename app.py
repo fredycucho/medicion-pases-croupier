@@ -139,11 +139,18 @@ if st.button(boton_texto, use_container_width=True):
         st.rerun()   # ← 🔴 Y AQUÍ TAMBIÉN
 
 # Mostrar tiempo en curso
+cronometro_placeholder = st.empty()
+
 if st.session_state.inicio is not None:
     tiempo_actual = time.time() - st.session_state.inicio
-    st.info(f"⏱ Tiempo en curso: {formato_tiempo(tiempo_actual)}")
+    cronometro_placeholder.markdown(
+        f"## ⏱ {formato_tiempo(tiempo_actual)}"
+    )
+    time.sleep(0.5)  # refresca cada medio segundo
+    st.rerun()
 
 # Mostrar último registro guardado
 if st.session_state.ultimo_registro is not None:
     st.success("Registro guardado correctamente")
     st.json(st.session_state.ultimo_registro)
+
