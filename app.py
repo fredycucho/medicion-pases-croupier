@@ -104,14 +104,16 @@ jugadores = st.slider("Cantidad de jugadores", 1, 6, 6)
 if "inicio" not in st.session_state:
     st.session_state.inicio = None
 
-if st.session_state.inicio is None:
-    if st.button("▶ Iniciar"):
-        st.session_state.inicio = time.time()
-else:
-    tiempo_actual = time.time() - st.session_state.inicio
-    st.info(f"Tiempo en curso: {formato_tiempo(tiempo_actual)}")
+boton_texto = "▶ Iniciar" if st.session_state.inicio is None else "⏹ Finalizar"
 
-    if st.button("⏹ Finalizar"):
+if st.button(boton_texto, use_container_width=True):
+
+    # ----- INICIAR -----
+    if st.session_state.inicio is None:
+        st.session_state.inicio = time.time()
+
+    # ----- FINALIZAR -----
+    else:
         tiempo_final = time.time() - st.session_state.inicio
 
         registro = {
@@ -126,7 +128,12 @@ else:
 
         guardar_registro(registro)
 
-        st.success(f"Tiempo registrado: {registro['Tiempo_formato']}")
+        st.success("Registro guardado correctamente")
+        st.json(registro)  # muestra el registro completo
+
         st.session_state.inicio = None
 
-
+# Mostrar tiempo en curso
+if st.session_state.inicio is not None:
+    tiempo_actual = time.time() - st.session_state.inicio
+    st.info(f"Tiempo en curso: {formato_tiempo(tiempo_actual)}")
