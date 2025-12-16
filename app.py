@@ -6,7 +6,7 @@ import os
 
 # ================= CONFIG =================
 ARCHIVO_EXCEL = "pases_croupier.xlsx"
-CODIGOS_ADMIN = ["JMESA01", "ADMINVIP"]
+CODIGOS_ADMIN = ["jmesa01", "adminvip"]
 
 CFG_JEFES = "config_jefes_mesa.xlsx"
 CFG_CROUPIERS = "config_croupiers.xlsx"
@@ -221,3 +221,4 @@ if os.path.exists(ARCHIVO_EXCEL):
         st.info("ℹ️ Aún no hay mediciones registradas.")
 else:
     st.info("ℹ️ El archivo de mediciones todavía no existe.")
+
