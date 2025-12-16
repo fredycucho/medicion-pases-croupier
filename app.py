@@ -57,7 +57,7 @@ def formato_tiempo(segundos):
     s = int(segundos % 60)
     return f"{m:02d}:{s:02d}"
 
-# ================= ESTADO =================
+# ================= SESSION STATE =================
 if "inicio" not in st.session_state:
     st.session_state.inicio = None
 
@@ -76,24 +76,15 @@ st.title("⏱ Medición de Pases por Croupier")
 
 bloqueado = st.session_state.inicio is not None
 
-# -------- Selectores (bloqueables) --------
-jefe_mesa = st.selectbox(
-    "Jefe de mesa (quien mide)", jefes_mesa, disabled=bloqueado
-)
-croupier = st.selectbox(
-    "Croupier", croupiers, disabled=bloqueado
-)
-juego = st.selectbox(
-    "Juego", juegos, disabled=bloqueado
-)
-jugadores = st.slider(
-    "Cantidad de jugadores", 1, 6, 6, disabled=bloqueado
-)
+# -------- Selectores --------
+jefe_mesa = st.selectbox("Jefe de mesa (quien mide)", jefes_mesa, disabled=bloqueado)
+croupier = st.selectbox("Croupier", croupiers, disabled=bloqueado)
+juego = st.selectbox("Juego", juegos, disabled=bloqueado)
+jugadores = st.slider("Cantidad de jugadores", 1, 6, 6, disabled=bloqueado)
 
 st.divider()
 
-# Placeholder cronómetro
-cronometro_placeholder = st.empty()
+cronometro = st.empty()
 
 # ================= CRONÓMETRO =================
 if st.session_state.inicio is None and not st.session_state.confirmar_nueva:
@@ -103,9 +94,7 @@ if st.session_state.inicio is None and not st.session_state.confirmar_nueva:
 
 elif st.session_state.inicio is not None:
     tiempo_actual = time.time() - st.session_state.inicio
-    cronometro_placeholder.info(
-        f"⏱ Tiempo en curso: {formato_tiempo(tiempo_actual)}"
-    )
+    cronometro.info(f"⏱ Tiempo en curso: {formato_tiempo(tiempo_actual)}")
 
     if st.button("⏹ FINALIZAR", use_container_width=True):
         tiempo_final = time.time() - st.session_state.inicio
@@ -127,11 +116,10 @@ elif st.session_state.inicio is not None:
         st.session_state.confirmar_nueva = True
         st.rerun()
 
-    # refresco visible del cronómetro
     time.sleep(1)
     st.rerun()
 
-# ================= CONFIRMACIÓN =================
+# ================= NUEVA MEDICIÓN =================
 if st.session_state.confirmar_nueva:
     st.success(
         f"✅ Tiempo registrado: {st.session_state.ultimo_registro['Tiempo_formato']}"
@@ -159,15 +147,21 @@ if os.path.exists(ARCHIVO_EXCEL):
 
     if not df.empty:
 
+        st.markdown("### 👤 Tiempo promedio por croupier, juego y jugadores")
+
+        tabla_croupier_detalle = (
+            df
+            .groupby(["Croupier", "Juego", "Jugadores"])["Tiempo_segundos"]
+            .mean()
+            .reset_index()
+            .sort_values(["Croupier", "Juego", "Jugadores"])
+        )
+
+        st.dataframe(tabla_croupier_detalle, use_container_width=True)
+
         st.markdown("### ⏱ Tiempo promedio por juego")
         st.dataframe(
             df.groupby("Juego")["Tiempo_segundos"].mean().reset_index(),
-            use_container_width=True
-        )
-
-        st.markdown("### 👤 Tiempo promedio por croupier")
-        st.dataframe(
-            df.groupby("Croupier")["Tiempo_segundos"].mean().reset_index(),
             use_container_width=True
         )
 
@@ -179,17 +173,6 @@ if os.path.exists(ARCHIVO_EXCEL):
               .sort_values("Jugadores"),
             use_container_width=True
         )
-
-        st.markdown("### 🎯 Juego vs Cantidad de jugadores")
-        tabla_cruce = pd.pivot_table(
-            df,
-            values="Tiempo_segundos",
-            index="Juego",
-            columns="Jugadores",
-            aggfunc="mean"
-        ).round(2)
-
-        st.dataframe(tabla_cruce, use_container_width=True)
 
         col1, col2, col3 = st.columns(3)
         col1.metric("Total mediciones", len(df))
@@ -229,11 +212,11 @@ if codigo:
                         st.session_state.confirmar_reset = True
                         st.rerun()
                 else:
-                    st.warning("⚠️ ¿Seguro que desea borrar TODOS los registros?")
+                    st.warning("⚠️ ¿Borrar TODOS los registros?")
 
                     c1, c2 = st.columns(2)
                     with c1:
-                        if st.button("✅ Sí, borrar todo"):
+                        if st.button("✅ Sí, borrar"):
                             columnas = [
                                 "FechaHora", "JefeMesa", "Croupier",
                                 "Juego", "Jugadores",
@@ -250,7 +233,5 @@ if codigo:
                         if st.button("❌ Cancelar"):
                             st.session_state.confirmar_reset = False
                             st.rerun()
-        else:
-            st.info("Aún no existe archivo.")
     else:
         st.error("Código incorrecto")
