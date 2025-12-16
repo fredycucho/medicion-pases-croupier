@@ -134,6 +134,7 @@ if codigo in CODIGOS_ADMIN:
         if not st.session_state.confirmar_reset:
             if st.button("🧨 Resetear mediciones"):
                 st.session_state.confirmar_reset = True
+                st.rerun()
         else:
             st.warning("¿Borrar TODAS las mediciones?")
             if st.button("✅ Confirmar reset"):
@@ -221,4 +222,5 @@ if os.path.exists(ARCHIVO_EXCEL):
         st.info("ℹ️ Aún no hay mediciones registradas.")
 else:
     st.info("ℹ️ El archivo de mediciones todavía no existe.")
+
 
