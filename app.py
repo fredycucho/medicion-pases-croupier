@@ -6,7 +6,7 @@ import os
 
 # ================= CONFIG =================
 ARCHIVO_EXCEL = "pases_croupier.xlsx"
-CODIGOS_ADMIN = ["jmesa01", "adminvip"]
+CODIGOS_ADMIN = ["JMESA01", "ADMINVIP"]
 
 CFG_JEFES = "config_jefes_mesa.xlsx"
 CFG_CROUPIERS = "config_croupiers.xlsx"
@@ -21,37 +21,32 @@ def cargar_config(archivo, valores_iniciales):
 def guardar_config(archivo, lista):
     pd.DataFrame({"Nombre": lista}).to_excel(archivo, index=False)
 
-# ================= DATOS BASE =================
+# ================= LISTAS BASE COMPLETAS =================
 jefes_mesa_base = [
-    "Avila Leonardo Esteban", "Ayala Carlos Tadeo Benjamin",
-    "Barraza Sebastian", "Campillay Nicolas Eduardo",
-    "Carvajal Carla Paola", "Castro Lopéz Constanza",
-    "Collao Conzuelo Javiera", "Contreras Natalia Alejandra",
-    "Cortes Eduardo", "Cortes Marcelo Andres", "Cortes Viviana Victoria",
-    "Cuello Dinko Andres", "Diaz Guillermo Ignacio",
-    "Dinamarca Sergio Antonio", "Flores Sergio",
-    "Godoy Francisca", "Godoy Tommy", "Gonzalez Julian Alonso",
-    "Hernandez Teresa Carolina", "Jimenez Dafne Lorena",
-    "Milovic Milko Miroslav", "Muñoz Francisco Javier",
-    "Olivares Bernardo Jaime", "Oyanedel Giovanni Ernesto",
-    "Peña y Lillo Sebastian", "Ramirez Nicolas Elias",
-    "Rodriguez Darcy Scarlett", "Rojas Adriana Carina",
-    "Rojas Alejandro", "Salinas Jose Tomas", "Segovia Alejandra",
-    "Tapia Edward Antonio", "Tapia Manuel",
-    "Velasquez Felipe Ignacio", "Vivanco Ximena",
-    "Zarate Diego", "Zarricueta Angel"
+    "Aguado Jaime Omar", "Alvarez Vivian Leslie", "Araya Alex Fernando",
+    "Bravo Francisco Andres", "Diaz Raul Humberto", "Gonzalez Elizabeth Janet",
+    "Manriquez Rocio Alexsandra", "Pardo Freddy", "Recabal Willfredo Alexis",
+    "Soto Felix Eduardo", "Villegas Rodrigo"
 ]
 
 croupiers_base = [
-    "Avila Leonardo Esteban", "Ayala Carlos Tadeo Benjamin",
-    "Barraza Sebastian", "Campillay Nicolas Eduardo",
-    "Carvajal Carla Paola", "Castro Lopéz Constanza",
-    "Collao Conzuelo Javiera", "Contreras Natalia Alejandra"
+    "Avila Leonardo Esteban","Ayala Carlos Tadeo Benjamin","Barraza Sebastian",
+    "Campillay Nicolas Eduardo","Carvajal Carla Paola","Castro Lopéz Constanza",
+    "Collao Conzuelo Javiera","Contreras Natalia Alejandra","Cortes Eduardo",
+    "Cortes Marcelo Andres","Cortes Viviana Victoria","Cuello Dinko Andres",
+    "Diaz Guillermo Ignacio","Dinamarca Sergio Antonio","Flores Sergio",
+    "Godoy Francisca","Godoy Tommy","Gonzalez Julian Alonso",
+    "Hernandez Teresa Carolina","Jimenez Dafne Lorena","Milovic Milko Miroslav",
+    "Muñoz Francisco Javier","Olivares Bernardo Jaime","Oyanedel Giovanni Ernesto",
+    "Peña y Lillo Sebastian","Ramirez Nicolas Elias","Rodriguez Darcy Scarlett",
+    "Rojas Adriana Carina","Rojas Alejandro","Salinas Jose Tomas",
+    "Segovia Alejandra","Tapia Edward Antonio","Tapia Manuel",
+    "Velasquez Felipe Ignacio","Vivanco Ximena","Zarate Diego","Zarricueta Angel"
 ]
 
 juegos_base = [
-    "Blackjack", "Ruleta Americana", "Draw Poker",
-    "Hold'em Poker Plus", "Mini Punto y Banca", "Go Poker"
+    "Blackjack","Ruleta Americana","Draw Poker",
+    "Hold'em Poker Plus","Mini Punto y Banca","Go Poker"
 ]
 
 # ================= CARGA CONFIG =================
@@ -73,9 +68,9 @@ def formato_tiempo(segundos):
     return f"{int(segundos//60):02d}:{int(segundos%60):02d}"
 
 # ================= SESSION STATE =================
-for k in ["inicio","confirmar_nueva","ultimo_registro","confirmar_reset","modo_config"]:
+for k in ["inicio","confirmar_nueva","modo_config","confirmar_reset"]:
     if k not in st.session_state:
-        st.session_state[k] = None if k=="inicio" else False
+        st.session_state[k] = False if k!="inicio" else None
 
 # ================= UI =================
 st.set_page_config(page_title="Medición de Pases", layout="centered")
@@ -89,16 +84,14 @@ juego = st.selectbox("Juego", juegos, disabled=bloqueado)
 jugadores = st.slider("Cantidad de jugadores", 1, 6, 6, disabled=bloqueado)
 
 st.divider()
-
 cronometro = st.empty()
 
 # ================= CRONÓMETRO =================
-if st.session_state.inicio is None and not st.session_state.confirmar_nueva:
+if st.session_state.inicio is None:
     if st.button("▶ INICIAR", use_container_width=True):
         st.session_state.inicio = time.time()
         st.rerun()
-
-elif st.session_state.inicio is not None:
+else:
     cronometro.info(f"⏱ Tiempo: {formato_tiempo(time.time()-st.session_state.inicio)}")
 
     if st.button("⏹ FINALIZAR", use_container_width=True):
@@ -113,7 +106,7 @@ elif st.session_state.inicio is not None:
             "Tiempo_formato": formato_tiempo(t)
         })
         st.session_state.inicio = None
-        st.session_state.confirmar_nueva = True
+        st.success("✅ Medición guardada")
         st.rerun()
 
     time.sleep(1)
@@ -127,16 +120,34 @@ codigo = st.text_input("Código", type="password")
 
 if codigo in CODIGOS_ADMIN:
 
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
 
     with col1:
-        st.download_button(
-            "📥 Descargar Excel",
-            open(ARCHIVO_EXCEL,"rb"),
-            file_name=ARCHIVO_EXCEL
-        )
+        if os.path.exists(ARCHIVO_EXCEL):
+            st.download_button(
+                "📥 Descargar Excel",
+                open(ARCHIVO_EXCEL,"rb"),
+                file_name=ARCHIVO_EXCEL
+            )
 
     with col2:
+        if not st.session_state.confirmar_reset:
+            if st.button("🧨 Resetear mediciones"):
+                st.session_state.confirmar_reset = True
+        else:
+            st.warning("¿Borrar TODAS las mediciones?")
+            if st.button("✅ Confirmar reset"):
+                columnas = [
+                    "FechaHora","JefeMesa","Croupier",
+                    "Juego","Jugadores",
+                    "Tiempo_segundos","Tiempo_formato"
+                ]
+                pd.DataFrame(columns=columnas).to_excel(ARCHIVO_EXCEL, index=False)
+                st.session_state.confirmar_reset = False
+                st.success("Base de mediciones reiniciada")
+                st.rerun()
+
+    with col3:
         if st.button("⚙ Configuración"):
             st.session_state.modo_config = not st.session_state.modo_config
 
@@ -152,9 +163,11 @@ if codigo in CODIGOS_ADMIN:
         ]:
             st.markdown(f"### {titulo}")
 
-            st.dataframe(pd.DataFrame({"Nombre": lista}), use_container_width=True)
+            df_cfg = pd.DataFrame({"Nombre": lista})
+            df_cfg.index = df_cfg.index + 1
+            st.dataframe(df_cfg, use_container_width=True)
 
-            nuevo = st.text_input(f"Agregar nuevo {titulo[:-1]}", key=titulo)
+            nuevo = st.text_input(f"Agregar nuevo {titulo[:-1]}", key=f"new_{titulo}")
             if st.button(f"➕ Agregar {titulo}", key=f"add_{titulo}") and nuevo:
                 if nuevo not in lista:
                     lista.append(nuevo)
@@ -170,5 +183,3 @@ if codigo in CODIGOS_ADMIN:
                 lista.remove(eliminar)
                 guardar_config(archivo, lista)
                 st.rerun()
-
-
