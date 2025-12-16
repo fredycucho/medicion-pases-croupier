@@ -112,6 +112,52 @@ else:
     time.sleep(1)
     st.rerun()
 
+# ================= ELIMINAR ÚLTIMO REGISTRO =================
+st.divider()
+st.subheader("🗑 Eliminar último registro")
+
+if "confirmar_borrar_ultimo" not in st.session_state:
+    st.session_state.confirmar_borrar_ultimo = False
+
+if os.path.exists(ARCHIVO_EXCEL):
+    df_temp = pd.read_excel(ARCHIVO_EXCEL)
+
+    if df_temp.empty:
+        st.info("ℹ️ No hay registros para eliminar.")
+    else:
+        if not st.session_state.confirmar_borrar_ultimo:
+            if st.button("🗑 Eliminar último registro"):
+                st.session_state.confirmar_borrar_ultimo = True
+                st.rerun()
+        else:
+            ultimo = df_temp.iloc[-1]
+
+            st.warning(
+                f"¿Desea eliminar el último registro?\n\n"
+                f"🕒 {ultimo['FechaHora']}\n"
+                f"👤 {ultimo['Croupier']} – {ultimo['Juego']} – {ultimo['Jugadores']} jugadores\n"
+                f"⏱ {ultimo['Tiempo_formato']}"
+            )
+
+            col_yes, col_no = st.columns(2)
+
+            with col_yes:
+                if st.button("✅ Sí, eliminar"):
+                    df_temp = df_temp.iloc[:-1]
+                    df_temp.to_excel(ARCHIVO_EXCEL, index=False)
+                    st.session_state.confirmar_borrar_ultimo = False
+                    st.success("Último registro eliminado.")
+                    st.rerun()
+
+            with col_no:
+                if st.button("❌ No, cancelar"):
+                    st.session_state.confirmar_borrar_ultimo = False
+                    st.info("Operación cancelada.")
+                    st.rerun()
+else:
+    st.info("ℹ️ Aún no existe el archivo de mediciones.")
+
+
 # ================= ADMIN =================
 st.divider()
 st.subheader("🔐 Acceso administrativo")
@@ -222,6 +268,7 @@ if os.path.exists(ARCHIVO_EXCEL):
         st.info("ℹ️ Aún no hay mediciones registradas.")
 else:
     st.info("ℹ️ El archivo de mediciones todavía no existe.")
+
 
 
 
