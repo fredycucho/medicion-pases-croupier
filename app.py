@@ -165,14 +165,21 @@ if os.path.exists(ARCHIVO_EXCEL):
             use_container_width=True
         )
 
-        st.markdown("### 👥 Tiempo promedio por cantidad de jugadores")
-        st.dataframe(
-            df.groupby("Jugadores")["Tiempo_segundos"]
-              .mean()
-              .reset_index()
-              .sort_values("Jugadores"),
-            use_container_width=True
-        )
+st.markdown("### 👥 Tiempo promedio por juego y cantidad de jugadores")
+
+tabla_juego_jugadores = (
+    df
+    .groupby(["Juego", "Jugadores"])["Tiempo_segundos"]
+    .mean()
+    .reset_index()
+    .sort_values(["Juego", "Jugadores"])
+)
+
+st.dataframe(
+    tabla_juego_jugadores,
+    use_container_width=True
+)
+
 
         col1, col2, col3 = st.columns(3)
         col1.metric("Total mediciones", len(df))
@@ -235,3 +242,4 @@ if codigo:
                             st.rerun()
     else:
         st.error("Código incorrecto")
+
