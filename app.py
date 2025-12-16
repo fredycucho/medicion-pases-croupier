@@ -6,7 +6,7 @@ import os
 
 # ================= CONFIG =================
 ARCHIVO_EXCEL = "pases_croupier.xlsx"
-CODIGOS_ADMIN = ["jmesa01", "adminvip"]
+CODIGOS_ADMIN = ["JMESA01", "ADMINVIP"]
 
 jefes_mesa = [
     "Aguado Jaime Omar", "Alvarez Vivian Leslie", "Araya Alex Fernando",
@@ -72,17 +72,27 @@ if "confirmar_reset" not in st.session_state:
 
 # ================= UI =================
 st.set_page_config(page_title="Medición de Pases", layout="centered")
-st.title("⏱ Medición de Pases hora por Croupier")
+st.title("⏱ Medición de Pases por Croupier")
 
-# -------- Selectores --------
-jefe_mesa = st.selectbox("Jefe de mesa (quien mide)", jefes_mesa)
-croupier = st.selectbox("Croupier", croupiers)
-juego = st.selectbox("Juego", juegos)
-jugadores = st.slider("Cantidad de jugadores", 1, 6, 6)
+bloqueado = st.session_state.inicio is not None
+
+# -------- Selectores (bloqueables) --------
+jefe_mesa = st.selectbox(
+    "Jefe de mesa (quien mide)", jefes_mesa, disabled=bloqueado
+)
+croupier = st.selectbox(
+    "Croupier", croupiers, disabled=bloqueado
+)
+juego = st.selectbox(
+    "Juego", juegos, disabled=bloqueado
+)
+jugadores = st.slider(
+    "Cantidad de jugadores", 1, 6, 6, disabled=bloqueado
+)
 
 st.divider()
 
-# Placeholder del cronómetro
+# Placeholder cronómetro
 cronometro_placeholder = st.empty()
 
 # ================= CRONÓMETRO =================
@@ -117,11 +127,11 @@ elif st.session_state.inicio is not None:
         st.session_state.confirmar_nueva = True
         st.rerun()
 
-    # 🔁 refresco automático del cronómetro
+    # refresco visible del cronómetro
     time.sleep(1)
     st.rerun()
 
-# ================= CONFIRMACIÓN NUEVA MEDICIÓN =================
+# ================= CONFIRMACIÓN =================
 if st.session_state.confirmar_nueva:
     st.success(
         f"✅ Tiempo registrado: {st.session_state.ultimo_registro['Tiempo_formato']}"
@@ -148,6 +158,7 @@ if os.path.exists(ARCHIVO_EXCEL):
     df = pd.read_excel(ARCHIVO_EXCEL)
 
     if not df.empty:
+
         st.markdown("### ⏱ Tiempo promedio por juego")
         st.dataframe(
             df.groupby("Juego")["Tiempo_segundos"].mean().reset_index(),
@@ -160,10 +171,31 @@ if os.path.exists(ARCHIVO_EXCEL):
             use_container_width=True
         )
 
+        st.markdown("### 👥 Tiempo promedio por cantidad de jugadores")
+        st.dataframe(
+            df.groupby("Jugadores")["Tiempo_segundos"]
+              .mean()
+              .reset_index()
+              .sort_values("Jugadores"),
+            use_container_width=True
+        )
+
+        st.markdown("### 🎯 Juego vs Cantidad de jugadores")
+        tabla_cruce = pd.pivot_table(
+            df,
+            values="Tiempo_segundos",
+            index="Juego",
+            columns="Jugadores",
+            aggfunc="mean"
+        ).round(2)
+
+        st.dataframe(tabla_cruce, use_container_width=True)
+
         col1, col2, col3 = st.columns(3)
         col1.metric("Total mediciones", len(df))
-        col2.metric("Mínimo", formato_tiempo(df["Tiempo_segundos"].min()))
-        col3.metric("Máximo", formato_tiempo(df["Tiempo_segundos"].max()))
+        col2.metric("Tiempo mínimo", formato_tiempo(df["Tiempo_segundos"].min()))
+        col3.metric("Tiempo máximo", formato_tiempo(df["Tiempo_segundos"].max()))
+
     else:
         st.info("El archivo existe, pero no tiene datos.")
 else:
@@ -182,7 +214,6 @@ if codigo:
         if os.path.exists(ARCHIVO_EXCEL):
             col1, col2 = st.columns(2)
 
-            # ---- Descargar ----
             with col1:
                 with open(ARCHIVO_EXCEL, "rb") as f:
                     st.download_button(
@@ -192,7 +223,6 @@ if codigo:
                         mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
                     )
 
-            # ---- Reset ----
             with col2:
                 if not st.session_state.confirmar_reset:
                     if st.button("🧨 Resetear registros"):
@@ -209,11 +239,11 @@ if codigo:
                                 "Juego", "Jugadores",
                                 "Tiempo_segundos", "Tiempo_formato"
                             ]
-                            df_vacio = pd.DataFrame(columns=columnas)
-                            df_vacio.to_excel(ARCHIVO_EXCEL, index=False)
-
+                            pd.DataFrame(columns=columnas).to_excel(
+                                ARCHIVO_EXCEL, index=False
+                            )
                             st.session_state.confirmar_reset = False
-                            st.success("🧹 Registros eliminados. Archivo reiniciado.")
+                            st.success("🧹 Registros eliminados.")
                             st.rerun()
 
                     with c2:
@@ -224,5 +254,3 @@ if codigo:
             st.info("Aún no existe archivo.")
     else:
         st.error("Código incorrecto")
-
-
