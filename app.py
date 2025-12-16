@@ -112,7 +112,6 @@ else:
     time.sleep(1)
     st.rerun()
 
-
 # ================= ADMIN =================
 st.divider()
 st.subheader("🔐 Acceso administrativo")
@@ -151,7 +150,40 @@ if codigo in CODIGOS_ADMIN:
     with col3:
         if st.button("⚙ Configuración"):
             st.session_state.modo_config = not st.session_state.modo_config
-            
+
+    # ================= CONFIGURACIÓN =================
+    if st.session_state.modo_config:
+        st.divider()
+        st.subheader("⚙ Configuración del sistema")
+
+        for titulo, archivo, lista in [
+            ("Jefes de mesa", CFG_JEFES, jefes_mesa),
+            ("Croupiers", CFG_CROUPIERS, croupiers),
+            ("Juegos", CFG_JUEGOS, juegos)
+        ]:
+            st.markdown(f"### {titulo}")
+
+            df_cfg = pd.DataFrame({"Nombre": lista})
+            df_cfg.index = df_cfg.index + 1
+            st.dataframe(df_cfg, use_container_width=True)
+
+            nuevo = st.text_input(f"Agregar nuevo {titulo[:-1]}", key=f"new_{titulo}")
+            if st.button(f"➕ Agregar {titulo}", key=f"add_{titulo}") and nuevo:
+                if nuevo not in lista:
+                    lista.append(nuevo)
+                    guardar_config(archivo, lista)
+                    st.rerun()
+
+            eliminar = st.selectbox(
+                f"Eliminar {titulo[:-1]}",
+                [""] + lista,
+                key=f"del_{titulo}"
+            )
+            if eliminar and st.button(f"🗑 Eliminar {titulo}", key=f"delbtn_{titulo}"):
+                lista.remove(eliminar)
+                guardar_config(archivo, lista)
+                st.rerun()
+
 # ================= ESTADÍSTICAS =================
 st.divider()
 st.subheader("📊 Estadísticas")
@@ -187,38 +219,3 @@ if os.path.exists(ARCHIVO_EXCEL):
         st.info("ℹ️ Aún no hay mediciones registradas.")
 else:
     st.info("ℹ️ El archivo de mediciones todavía no existe.")
-
-
-    # ================= CONFIGURACIÓN =================
-    if st.session_state.modo_config:
-        st.divider()
-        st.subheader("⚙ Configuración del sistema")
-
-        for titulo, archivo, lista in [
-            ("Jefes de mesa", CFG_JEFES, jefes_mesa),
-            ("Croupiers", CFG_CROUPIERS, croupiers),
-            ("Juegos", CFG_JUEGOS, juegos)
-        ]:
-            st.markdown(f"### {titulo}")
-
-            df_cfg = pd.DataFrame({"Nombre": lista})
-            df_cfg.index = df_cfg.index + 1
-            st.dataframe(df_cfg, use_container_width=True)
-
-            nuevo = st.text_input(f"Agregar nuevo {titulo[:-1]}", key=f"new_{titulo}")
-            if st.button(f"➕ Agregar {titulo}", key=f"add_{titulo}") and nuevo:
-                if nuevo not in lista:
-                    lista.append(nuevo)
-                    guardar_config(archivo, lista)
-                    st.rerun()
-
-            eliminar = st.selectbox(
-                f"Eliminar {titulo[:-1]}",
-                [""] + lista,
-                key=f"del_{titulo}"
-            )
-            if eliminar and st.button(f"🗑 Eliminar {titulo}", key=f"delbtn_{titulo}"):
-                lista.remove(eliminar)
-                guardar_config(archivo, lista)
-                st.rerun()
-
