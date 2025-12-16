@@ -23,10 +23,23 @@ def guardar_config(archivo, lista):
 
 # ================= DATOS BASE =================
 jefes_mesa_base = [
-    "Aguado Jaime Omar", "Alvarez Vivian Leslie", "Araya Alex Fernando",
-    "Bravo Francisco Andres", "Diaz Raul Humberto", "Gonzalez Elizabeth Janet",
-    "Manriquez Rocio Alexsandra", "Pardo Freddy", "Recabal Willfredo Alexis",
-    "Soto Felix Eduardo", "Villegas Rodrigo"
+    "Avila Leonardo Esteban", "Ayala Carlos Tadeo Benjamin",
+    "Barraza Sebastian", "Campillay Nicolas Eduardo",
+    "Carvajal Carla Paola", "Castro Lopéz Constanza",
+    "Collao Conzuelo Javiera", "Contreras Natalia Alejandra",
+    "Cortes Eduardo", "Cortes Marcelo Andres", "Cortes Viviana Victoria",
+    "Cuello Dinko Andres", "Diaz Guillermo Ignacio",
+    "Dinamarca Sergio Antonio", "Flores Sergio",
+    "Godoy Francisca", "Godoy Tommy", "Gonzalez Julian Alonso",
+    "Hernandez Teresa Carolina", "Jimenez Dafne Lorena",
+    "Milovic Milko Miroslav", "Muñoz Francisco Javier",
+    "Olivares Bernardo Jaime", "Oyanedel Giovanni Ernesto",
+    "Peña y Lillo Sebastian", "Ramirez Nicolas Elias",
+    "Rodriguez Darcy Scarlett", "Rojas Adriana Carina",
+    "Rojas Alejandro", "Salinas Jose Tomas", "Segovia Alejandra",
+    "Tapia Edward Antonio", "Tapia Manuel",
+    "Velasquez Felipe Ignacio", "Vivanco Ximena",
+    "Zarate Diego", "Zarricueta Angel"
 ]
 
 croupiers_base = [
@@ -157,4 +170,5 @@ if codigo in CODIGOS_ADMIN:
                 lista.remove(eliminar)
                 guardar_config(archivo, lista)
                 st.rerun()
+
 
