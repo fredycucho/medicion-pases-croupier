@@ -74,7 +74,7 @@ for k in ["inicio","confirmar_nueva","modo_config","confirmar_reset"]:
 
 # ================= UI =================
 st.set_page_config(page_title="Medición de Pases", layout="centered")
-st.title("⏱ Medición de Pases por Croupier")
+st.title("⏱ Medición Pases/Hora Croupier")
 
 bloqueado = st.session_state.inicio is not None
 
@@ -222,5 +222,6 @@ if os.path.exists(ARCHIVO_EXCEL):
         st.info("ℹ️ Aún no hay mediciones registradas.")
 else:
     st.info("ℹ️ El archivo de mediciones todavía no existe.")
+
 
 
