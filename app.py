@@ -202,6 +202,7 @@ if os.path.exists(ARCHIVO_EXCEL):
             .round(2)
             .sort_values(["Juego", "Jugadores"])
         )
+        tabla_juego_jugadores.index = tabla_juego_jugadores.index + 1
         st.dataframe(tabla_juego_jugadores, use_container_width=True)
 
         st.markdown("### 👤 Tiempo promedio por croupier, juego y jugadores")
@@ -213,6 +214,7 @@ if os.path.exists(ARCHIVO_EXCEL):
             .round(2)
             .sort_values(["Croupier", "Juego", "Jugadores"])
         )
+        tabla_croupier.index = tabla_croupier.index + 1
         st.dataframe(tabla_croupier, use_container_width=True)
 
     else:
