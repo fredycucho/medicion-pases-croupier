@@ -8,67 +8,61 @@ import os
 ARCHIVO_EXCEL = "pases_croupier.xlsx"
 CODIGOS_ADMIN = ["JMESA01", "ADMINVIP"]
 
-jefes_mesa = [
+CFG_JEFES = "config_jefes_mesa.xlsx"
+CFG_CROUPIERS = "config_croupiers.xlsx"
+CFG_JUEGOS = "config_juegos.xlsx"
+
+# ================= FUNCIONES CONFIG =================
+def cargar_config(archivo, valores_iniciales):
+    if not os.path.exists(archivo):
+        pd.DataFrame({"Nombre": valores_iniciales}).to_excel(archivo, index=False)
+    return pd.read_excel(archivo)["Nombre"].dropna().tolist()
+
+def guardar_config(archivo, lista):
+    pd.DataFrame({"Nombre": lista}).to_excel(archivo, index=False)
+
+# ================= DATOS BASE =================
+jefes_mesa_base = [
     "Aguado Jaime Omar", "Alvarez Vivian Leslie", "Araya Alex Fernando",
     "Bravo Francisco Andres", "Diaz Raul Humberto", "Gonzalez Elizabeth Janet",
     "Manriquez Rocio Alexsandra", "Pardo Freddy", "Recabal Willfredo Alexis",
     "Soto Felix Eduardo", "Villegas Rodrigo"
 ]
 
-croupiers = [
+croupiers_base = [
     "Avila Leonardo Esteban", "Ayala Carlos Tadeo Benjamin",
     "Barraza Sebastian", "Campillay Nicolas Eduardo",
     "Carvajal Carla Paola", "Castro Lopéz Constanza",
-    "Collao Conzuelo Javiera", "Contreras Natalia Alejandra",
-    "Cortes Eduardo", "Cortes Marcelo Andres", "Cortes Viviana Victoria",
-    "Cuello Dinko Andres", "Diaz Guillermo Ignacio",
-    "Dinamarca Sergio Antonio", "Flores Sergio",
-    "Godoy Francisca", "Godoy Tommy", "Gonzalez Julian Alonso",
-    "Hernandez Teresa Carolina", "Jimenez Dafne Lorena",
-    "Milovic Milko Miroslav", "Muñoz Francisco Javier",
-    "Olivares Bernardo Jaime", "Oyanedel Giovanni Ernesto",
-    "Peña y Lillo Sebastian", "Ramirez Nicolas Elias",
-    "Rodriguez Darcy Scarlett", "Rojas Adriana Carina",
-    "Rojas Alejandro", "Salinas Jose Tomas", "Segovia Alejandra",
-    "Tapia Edward Antonio", "Tapia Manuel",
-    "Velasquez Felipe Ignacio", "Vivanco Ximena",
-    "Zarate Diego", "Zarricueta Angel"
+    "Collao Conzuelo Javiera", "Contreras Natalia Alejandra"
 ]
 
-juegos = [
+juegos_base = [
     "Blackjack", "Ruleta Americana", "Draw Poker",
     "Hold'em Poker Plus", "Mini Punto y Banca", "Go Poker"
 ]
 
+# ================= CARGA CONFIG =================
+jefes_mesa = cargar_config(CFG_JEFES, jefes_mesa_base)
+croupiers = cargar_config(CFG_CROUPIERS, croupiers_base)
+juegos = cargar_config(CFG_JUEGOS, juegos_base)
+
 # ================= FUNCIONES =================
 def guardar_registro(data):
     df_nuevo = pd.DataFrame([data])
-
     if os.path.exists(ARCHIVO_EXCEL):
         df = pd.read_excel(ARCHIVO_EXCEL)
         df = pd.concat([df, df_nuevo], ignore_index=True)
     else:
         df = df_nuevo
-
     df.to_excel(ARCHIVO_EXCEL, index=False)
 
 def formato_tiempo(segundos):
-    m = int(segundos // 60)
-    s = int(segundos % 60)
-    return f"{m:02d}:{s:02d}"
+    return f"{int(segundos//60):02d}:{int(segundos%60):02d}"
 
 # ================= SESSION STATE =================
-if "inicio" not in st.session_state:
-    st.session_state.inicio = None
-
-if "confirmar_nueva" not in st.session_state:
-    st.session_state.confirmar_nueva = False
-
-if "ultimo_registro" not in st.session_state:
-    st.session_state.ultimo_registro = None
-
-if "confirmar_reset" not in st.session_state:
-    st.session_state.confirmar_reset = False
+for k in ["inicio","confirmar_nueva","ultimo_registro","confirmar_reset","modo_config"]:
+    if k not in st.session_state:
+        st.session_state[k] = None if k=="inicio" else False
 
 # ================= UI =================
 st.set_page_config(page_title="Medición de Pases", layout="centered")
@@ -76,7 +70,7 @@ st.title("⏱ Medición de Pases por Croupier")
 
 bloqueado = st.session_state.inicio is not None
 
-jefe_mesa = st.selectbox("Jefe de mesa (quien mide)", jefes_mesa, disabled=bloqueado)
+jefe_mesa = st.selectbox("Jefe de mesa", jefes_mesa, disabled=bloqueado)
 croupier = st.selectbox("Croupier", croupiers, disabled=bloqueado)
 juego = st.selectbox("Juego", juegos, disabled=bloqueado)
 jugadores = st.slider("Cantidad de jugadores", 1, 6, 6, disabled=bloqueado)
@@ -92,25 +86,19 @@ if st.session_state.inicio is None and not st.session_state.confirmar_nueva:
         st.rerun()
 
 elif st.session_state.inicio is not None:
-    tiempo_actual = time.time() - st.session_state.inicio
-    cronometro.info(f"⏱ Tiempo en curso: {formato_tiempo(tiempo_actual)}")
+    cronometro.info(f"⏱ Tiempo: {formato_tiempo(time.time()-st.session_state.inicio)}")
 
     if st.button("⏹ FINALIZAR", use_container_width=True):
-        tiempo_final = time.time() - st.session_state.inicio
-
-        registro = {
+        t = time.time() - st.session_state.inicio
+        guardar_registro({
             "FechaHora": datetime.now(),
             "JefeMesa": jefe_mesa,
             "Croupier": croupier,
             "Juego": juego,
             "Jugadores": jugadores,
-            "Tiempo_segundos": round(tiempo_final, 2),
-            "Tiempo_formato": formato_tiempo(tiempo_final)
-        }
-
-        guardar_registro(registro)
-
-        st.session_state.ultimo_registro = registro
+            "Tiempo_segundos": round(t,2),
+            "Tiempo_formato": formato_tiempo(t)
+        })
         st.session_state.inicio = None
         st.session_state.confirmar_nueva = True
         st.rerun()
@@ -118,114 +106,54 @@ elif st.session_state.inicio is not None:
     time.sleep(1)
     st.rerun()
 
-# ================= NUEVA MEDICIÓN =================
-if st.session_state.confirmar_nueva:
-    st.success(f"✅ Tiempo registrado: {st.session_state.ultimo_registro['Tiempo_formato']}")
-
-    st.markdown("### ¿Desea realizar una nueva medición?")
-    col1, col2 = st.columns(2)
-
-    with col1:
-        if st.button("✅ Sí"):
-            st.session_state.confirmar_nueva = False
-            st.session_state.ultimo_registro = None
-            st.rerun()
-
-    with col2:
-        if st.button("❌ No"):
-            st.info("Puede revisar estadísticas o cerrar la aplicación.")
-
-# ================= ESTADÍSTICAS =================
-st.divider()
-st.subheader("📊 Estadísticas internas")
-
-if os.path.exists(ARCHIVO_EXCEL):
-    df = pd.read_excel(ARCHIVO_EXCEL)
-
-    if not df.empty:
-
-        st.markdown("### 👤 Tiempo promedio por croupier, juego y jugadores")
-        tabla_croupier_detalle = (
-            df.groupby(["Croupier", "Juego", "Jugadores"])["Tiempo_segundos"]
-              .mean()
-              .reset_index()
-              .sort_values(["Croupier", "Juego", "Jugadores"])
-        )
-        st.dataframe(tabla_croupier_detalle, use_container_width=True)
-
-        st.markdown("### 👥 Tiempo promedio por juego y cantidad de jugadores")
-        tabla_juego_jugadores = (
-            df.groupby(["Juego", "Jugadores"])["Tiempo_segundos"]
-              .mean()
-              .reset_index()
-              .sort_values(["Juego", "Jugadores"])
-        )
-        st.dataframe(tabla_juego_jugadores, use_container_width=True)
-
-        st.markdown("### ⏱ Tiempo promedio general por juego")
-        st.dataframe(
-            df.groupby("Juego")["Tiempo_segundos"].mean().reset_index(),
-            use_container_width=True
-        )
-
-        col1, col2, col3 = st.columns(3)
-        col1.metric("Total mediciones", len(df))
-        col2.metric("Tiempo mínimo", formato_tiempo(df["Tiempo_segundos"].min()))
-        col3.metric("Tiempo máximo", formato_tiempo(df["Tiempo_segundos"].max()))
-
-    else:
-        st.info("El archivo existe, pero no tiene datos.")
-else:
-    st.info("Aún no hay registros.")
-
 # ================= ADMIN =================
 st.divider()
 st.subheader("🔐 Acceso administrativo")
 
-codigo = st.text_input("Código de acceso", type="password")
+codigo = st.text_input("Código", type="password")
 
-if codigo:
-    if codigo in CODIGOS_ADMIN:
-        st.success("Acceso autorizado")
+if codigo in CODIGOS_ADMIN:
 
-        if os.path.exists(ARCHIVO_EXCEL):
-            col1, col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
-            with col1:
-                with open(ARCHIVO_EXCEL, "rb") as f:
-                    st.download_button(
-                        "📥 Descargar Excel",
-                        f,
-                        file_name="pases_croupier.xlsx",
-                        mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
-                    )
+    with col1:
+        st.download_button(
+            "📥 Descargar Excel",
+            open(ARCHIVO_EXCEL,"rb"),
+            file_name=ARCHIVO_EXCEL
+        )
 
-            with col2:
-                if not st.session_state.confirmar_reset:
-                    if st.button("🧨 Resetear registros"):
-                        st.session_state.confirmar_reset = True
-                        st.rerun()
-                else:
-                    st.warning("⚠️ ¿Borrar TODOS los registros?")
+    with col2:
+        if st.button("⚙ Configuración"):
+            st.session_state.modo_config = not st.session_state.modo_config
 
-                    c1, c2 = st.columns(2)
-                    with c1:
-                        if st.button("✅ Sí, borrar"):
-                            columnas = [
-                                "FechaHora", "JefeMesa", "Croupier",
-                                "Juego", "Jugadores",
-                                "Tiempo_segundos", "Tiempo_formato"
-                            ]
-                            pd.DataFrame(columns=columnas).to_excel(
-                                ARCHIVO_EXCEL, index=False
-                            )
-                            st.session_state.confirmar_reset = False
-                            st.success("🧹 Registros eliminados.")
-                            st.rerun()
+    # ================= CONFIGURACIÓN =================
+    if st.session_state.modo_config:
+        st.divider()
+        st.subheader("⚙ Configuración del sistema")
 
-                    with c2:
-                        if st.button("❌ Cancelar"):
-                            st.session_state.confirmar_reset = False
-                            st.rerun()
-    else:
-        st.error("Código incorrecto")
+        for titulo, archivo, lista in [
+            ("Jefes de mesa", CFG_JEFES, jefes_mesa),
+            ("Croupiers", CFG_CROUPIERS, croupiers),
+            ("Juegos", CFG_JUEGOS, juegos)
+        ]:
+            st.markdown(f"### {titulo}")
+
+            st.dataframe(pd.DataFrame({"Nombre": lista}), use_container_width=True)
+
+            nuevo = st.text_input(f"Agregar nuevo {titulo[:-1]}", key=titulo)
+            if st.button(f"➕ Agregar {titulo}", key=f"add_{titulo}") and nuevo:
+                if nuevo not in lista:
+                    lista.append(nuevo)
+                    guardar_config(archivo, lista)
+                    st.rerun()
+
+            eliminar = st.selectbox(
+                f"Eliminar {titulo[:-1]}",
+                [""] + lista,
+                key=f"del_{titulo}"
+            )
+            if eliminar and st.button(f"🗑 Eliminar {titulo}", key=f"delbtn_{titulo}"):
+                lista.remove(eliminar)
+                guardar_config(archivo, lista)
+                st.rerun()
