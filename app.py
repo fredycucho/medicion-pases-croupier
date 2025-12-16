@@ -6,7 +6,7 @@ import os
 
 # ================= CONFIG =================
 ARCHIVO_EXCEL = "pases_croupier.xlsx"
-CODIGOS_ADMIN = ["JMESA01", "ADMINVIP"]
+CODIGOS_ADMIN = ["jmesa01", "adminvip"]
 
 CFG_JEFES = "config_jefes_mesa.xlsx"
 CFG_CROUPIERS = "config_croupiers.xlsx"
@@ -157,3 +157,4 @@ if codigo in CODIGOS_ADMIN:
                 lista.remove(eliminar)
                 guardar_config(archivo, lista)
                 st.rerun()
+
