@@ -112,6 +112,7 @@ else:
     time.sleep(1)
     st.rerun()
 
+
 # ================= ADMIN =================
 st.divider()
 st.subheader("🔐 Acceso administrativo")
@@ -150,6 +151,43 @@ if codigo in CODIGOS_ADMIN:
     with col3:
         if st.button("⚙ Configuración"):
             st.session_state.modo_config = not st.session_state.modo_config
+            
+# ================= ESTADÍSTICAS =================
+st.divider()
+st.subheader("📊 Estadísticas")
+
+if os.path.exists(ARCHIVO_EXCEL):
+    df = pd.read_excel(ARCHIVO_EXCEL)
+
+    if not df.empty:
+
+        st.markdown("### 🎲 Tiempo promedio por juego y cantidad de jugadores")
+        tabla_juego_jugadores = (
+            df
+            .groupby(["Juego", "Jugadores"])["Tiempo_segundos"]
+            .mean()
+            .reset_index()
+            .round(2)
+            .sort_values(["Juego", "Jugadores"])
+        )
+        st.dataframe(tabla_juego_jugadores, use_container_width=True)
+
+        st.markdown("### 👤 Tiempo promedio por croupier, juego y jugadores")
+        tabla_croupier = (
+            df
+            .groupby(["Croupier", "Juego", "Jugadores"])["Tiempo_segundos"]
+            .mean()
+            .reset_index()
+            .round(2)
+            .sort_values(["Croupier", "Juego", "Jugadores"])
+        )
+        st.dataframe(tabla_croupier, use_container_width=True)
+
+    else:
+        st.info("ℹ️ Aún no hay mediciones registradas.")
+else:
+    st.info("ℹ️ El archivo de mediciones todavía no existe.")
+
 
     # ================= CONFIGURACIÓN =================
     if st.session_state.modo_config:
@@ -183,3 +221,4 @@ if codigo in CODIGOS_ADMIN:
                 lista.remove(eliminar)
                 guardar_config(archivo, lista)
                 st.rerun()
+
