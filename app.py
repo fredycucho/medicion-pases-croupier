@@ -76,7 +76,6 @@ st.title("⏱ Medición de Pases por Croupier")
 
 bloqueado = st.session_state.inicio is not None
 
-# -------- Selectores --------
 jefe_mesa = st.selectbox("Jefe de mesa (quien mide)", jefes_mesa, disabled=bloqueado)
 croupier = st.selectbox("Croupier", croupiers, disabled=bloqueado)
 juego = st.selectbox("Juego", juegos, disabled=bloqueado)
@@ -121,9 +120,7 @@ elif st.session_state.inicio is not None:
 
 # ================= NUEVA MEDICIÓN =================
 if st.session_state.confirmar_nueva:
-    st.success(
-        f"✅ Tiempo registrado: {st.session_state.ultimo_registro['Tiempo_formato']}"
-    )
+    st.success(f"✅ Tiempo registrado: {st.session_state.ultimo_registro['Tiempo_formato']}")
 
     st.markdown("### ¿Desea realizar una nueva medición?")
     col1, col2 = st.columns(2)
@@ -148,38 +145,28 @@ if os.path.exists(ARCHIVO_EXCEL):
     if not df.empty:
 
         st.markdown("### 👤 Tiempo promedio por croupier, juego y jugadores")
-
         tabla_croupier_detalle = (
-            df
-            .groupby(["Croupier", "Juego", "Jugadores"])["Tiempo_segundos"]
-            .mean()
-            .reset_index()
-            .sort_values(["Croupier", "Juego", "Jugadores"])
+            df.groupby(["Croupier", "Juego", "Jugadores"])["Tiempo_segundos"]
+              .mean()
+              .reset_index()
+              .sort_values(["Croupier", "Juego", "Jugadores"])
         )
-
         st.dataframe(tabla_croupier_detalle, use_container_width=True)
 
-        st.markdown("### ⏱ Tiempo promedio por juego")
+        st.markdown("### 👥 Tiempo promedio por juego y cantidad de jugadores")
+        tabla_juego_jugadores = (
+            df.groupby(["Juego", "Jugadores"])["Tiempo_segundos"]
+              .mean()
+              .reset_index()
+              .sort_values(["Juego", "Jugadores"])
+        )
+        st.dataframe(tabla_juego_jugadores, use_container_width=True)
+
+        st.markdown("### ⏱ Tiempo promedio general por juego")
         st.dataframe(
             df.groupby("Juego")["Tiempo_segundos"].mean().reset_index(),
             use_container_width=True
         )
-
-st.markdown("### 👥 Tiempo promedio por juego y cantidad de jugadores")
-
-tabla_juego_jugadores = (
-    df
-    .groupby(["Juego", "Jugadores"])["Tiempo_segundos"]
-    .mean()
-    .reset_index()
-    .sort_values(["Juego", "Jugadores"])
-)
-
-st.dataframe(
-    tabla_juego_jugadores,
-    use_container_width=True
-)
-
 
         col1, col2, col3 = st.columns(3)
         col1.metric("Total mediciones", len(df))
@@ -242,4 +229,3 @@ if codigo:
                             st.rerun()
     else:
         st.error("Código incorrecto")
-
